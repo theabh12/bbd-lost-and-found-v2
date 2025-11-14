@@ -26,11 +26,7 @@
       background:linear-gradient(135deg,var(--bg1),var(--bg2));
       -webkit-font-smoothing:antialiased;
       min-height:100vh;
-      opacity:0;
-      transform:translateY(6px);
-      transition:opacity .28s ease,transform .28s ease;
     }
-    body.ready{opacity:1;transform:none}
     .app{max-width:1200px;margin:28px auto;padding:20px}
     
     /* Header */
@@ -115,7 +111,7 @@
     .card-desc{color:var(--muted);font-size:16px;line-height:1.6}
     .meta-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
     .pill{padding:8px 14px;border-radius:999px;background:#f1f7ff;font-weight:700;font-size:15px;color:var(--muted)}
-    .card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:10px}
+    .card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:10px;flex-wrap:wrap}
     .small-muted{font-size:13px;color:var(--muted)}
     .claim{
       padding:14px 20px;
@@ -297,7 +293,7 @@
       <!-- Controls -->
       <div class="controls">
         <input id="search" class="search" placeholder="Search title / description..." />
-        <button id="clearAll" class="btn danger">Clear All Data</button>
+        <button id="clearAll" class="btn danger">Clear All</button>
       </div>
     </header>
     
@@ -308,7 +304,7 @@
     
     <!-- Footer -->
     <footer>
-      <p>Made with ❤️ by BBD Students</p>
+      <p>Made with ❤️ by BBD Students | <a href="contributors.html">View Contributors</a></p>
       <p style="margin-top:8px;font-size:12px">Lost something? Found something? Share it here and help the community!</p>
     </footer>
   </div>
@@ -340,7 +336,7 @@
           <input id="location" class="input-field" placeholder="Location (e.g., Near Canteen)" style="flex:1;margin:0">
         </div>
         
-        <label style="font-size:14px;color:var(--muted);display:block;margin-top:12px;margin-bottom:4px">Upload Image (Optional)</label>
+        <label style="font-size:14px;color:var(--muted);display:block;margin-top:12px;margin-bottom:4px">Upload Image (Optional, max 500KB)</label>
         <input id="fileInput" type="file" accept="image/*" style="display:block;margin-bottom:10px">
         <img id="imgPreview" class="img-preview" alt="Preview">
         
@@ -385,7 +381,6 @@
     function init() {
       loadFromStorage();
       renderList();
-      document.body.classList.add('ready');
     }
     
     // Local Storage
@@ -451,6 +446,14 @@
     fileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (file) {
+        // Check file size (max 500KB)
+        if (file.size > 500 * 1024) {
+          showToast('❌ Image too large (max 500KB)');
+          fileInput.value = '';
+          imgPreview.classList.remove('show');
+          return;
+        }
+        
         const reader = new FileReader();
         reader.onload = (event) => {
           imgPreview.src = event.target.result;
@@ -489,13 +492,7 @@
         // Convert image to base64 if selected
         if (fileInput.files[0]) {
           const file = fileInput.files[0];
-          
-          // Check file size (max 1MB for localStorage)
-          if (file.size > 1024 * 1024) {
-            showToast('⚠️ Image too large (max 1MB). Posting without image...');
-          } else {
-            imageData = await fileToBase64(file);
-          }
+          imageData = await fileToBase64(file);
         }
         
         const newItem = {
@@ -580,7 +577,7 @@
             </div>
             <div class="card-foot">
               <div class="small-muted">${new Date(item.createdAt).toLocaleDateString()}</div>
-              <div style="display:flex;gap:8px">
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
                 <button class="claim ${item.claimed ? 'claimed' : ''}" data-id="${item.id}" ${item.claimed ? 'disabled' : ''}>
                   ${item.claimed ? 'Claimed' : 'Claim'}
                 </button>
